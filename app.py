@@ -4,9 +4,9 @@ import streamlit as st
 # -----------------------------------------------------------
 # PAGE CONFIGURATION
 # -----------------------------------------------------------
-st.set_page_config(page_title="AIFridgeChef", page_icon="🍳", layout="centered")
+st.set_page_config(page_title="WhatToCook", page_icon="🍳", layout="centered")
 
-st.title("🍳 AIFridgeChef")
+st.title("🍳 WhatToCook")
 st.markdown(
     "Select the Indian vegetables you have available. Staples like **onions,"
     " garlic, rice, wheat flour, dal, chana, and rajma** are already assumed to"
@@ -97,11 +97,9 @@ def find_matching_recipes(user_ingredients):
 
   for recipe in RECIPES:
     recipe_set = set(recipe["ingredients"])
-    # Only show recipes where all required ingredients are present in the user's available list
     if recipe_set.issubset(user_set):
       matched.append((len(recipe_set), recipe))
 
-  # Sort by most comprehensive match
   matched.sort(key=lambda x: x[0], reverse=True)
   return [r[1] for r in matched]
 
@@ -133,7 +131,7 @@ custom_ingredients = st.text_input(
     placeholder="e.g., tomatoes, oil, spices",
 )
 
-# Automatically add all permanent staples to the active user inventory list
+# Start with permanent staples
 selected_list = [
     "onion",
     "garlic",
@@ -147,27 +145,39 @@ selected_list = [
     "spices",
 ]
 
-# Append selected checkboxes
+# Track if any optional vegetable checkbox was actually clicked
+any_veg_selected = False
+
 if has_capsicum:
   selected_list.append("capsicum")
+  any_veg_selected = True
 if has_palak:
   selected_list.append("palak")
+  any_veg_selected = True
 if has_brinjal:
   selected_list.append("brinjal")
+  any_veg_selected = True
 if has_methi:
   selected_list.append("methi")
+  any_veg_selected = True
 if has_bottle_gourd:
   selected_list.append("bottle gourd")
+  any_veg_selected = True
 if has_mint:
   selected_list.append("mint")
+  any_veg_selected = True
 if has_bitter_gourd:
   selected_list.append("bitter gourd")
+  any_veg_selected = True
 if has_potatoes:
   selected_list.append("potatoes")
+  any_veg_selected = True
 
 if custom_ingredients:
   extra = [item.strip() for item in custom_ingredients.split(",")]
-  selected_list.extend(extra)
+  if extra and extra[0] != "":
+    selected_list.extend(extra)
+    any_veg_selected = True
 
 st.markdown("---")
 
@@ -175,27 +185,35 @@ st.markdown("---")
 # GENERATE RESULTS
 # -----------------------------------------------------------
 if st.button("✨ Generate Recipes", type="primary", use_container_width=True):
-  with st.spinner("Cooking up desi ideas..."):
-    results = find_matching_recipes(selected_list)
-
-  if not results:
-    st.info(
-        "No recipes matched your exact selection. Try checking a few more"
-        " vegetables above!"
+  # Check if nothing extra was selected besides the hidden defaults
+  if not any_veg_selected:
+    st.error(
+        "🛑 **FAST TILL YOU BUY STUFF!** 🧘‍♂️ Your fridge is completely empty"
+        " of veggies. Go grab some sabzi before the Master Chef locks the"
+        " kitchen!"
     )
   else:
-    st.success(f"Found {len(results)} delicious meal idea(s) for you!")
-    for recipe in results:
-      with st.container(border=True):
-        st.subheader(recipe["title"])
-        c1, c2 = st.columns(2)
-        with c1:
-          st.markdown(f"⏱️ **Prep Time:** {recipe['time']}")
-        with c2:
-          st.markdown(f"📊 **Difficulty:** {recipe['difficulty']}")
+    with st.spinner("Cooking up desi ideas..."):
+      results = find_matching_recipes(selected_list)
 
-        st.markdown(
-            f"🥗 **Required Ingredients:** {', '.join(recipe['ingredients'])}"
-        )
-        st.markdown("**Instructions:**")
-        st.text(recipe["instructions"])
+    if not results:
+      st.warning(
+          "⚠️ **STRICT FASTING CONTINUES!** No matching recipes found for that"
+          " specific combo. Try checking a few more veggies!"
+      )
+    else:
+      st.success(f"Found {len(results)} delicious meal idea(s) for you!")
+      for recipe in results:
+        with st.container(border=True):
+          st.subheader(recipe["title"])
+          c1, c2 = st.columns(2)
+          with c1:
+            st.markdown(f"⏱️ **Prep Time:** {recipe['time']}")
+          with c2:
+            st.markdown(f"📊 **Difficulty:** {recipe['difficulty']}")
+
+          st.markdown(
+              f"🥗 **Required Ingredients:** {', '.join(recipe['ingredients'])}"
+          )
+          st.markdown("**Instructions:**")
+          st.text(recipe["instructions"])
