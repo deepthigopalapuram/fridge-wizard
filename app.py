@@ -4,7 +4,11 @@ import streamlit as st
 # -----------------------------------------------------------
 # PAGE CONFIGURATION
 # -----------------------------------------------------------
-st.set_page_config(page_title="WhatToCook", page_icon="🍳", layout="centered")
+st.set_page_config(
+    page_title="WhatToCook",
+    page_icon="🍳",  # Frying pan icon for your app and browser tab
+    layout="centered",
+)
 
 st.title("🍳 WhatToCook")
 st.markdown(
