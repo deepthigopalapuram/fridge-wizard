@@ -4,13 +4,13 @@ import streamlit as st
 # -----------------------------------------------------------
 # PAGE CONFIGURATION
 # -----------------------------------------------------------
-st.set_page_config(
-    page_title="Fridge Leftovers Wizard", page_icon="🍳", layout="centered"
-)
+st.set_page_config(page_title="AIFridgeChef", page_icon="🍳", layout="centered")
 
-st.title("🍳 AI Recipe & Fridge Leftovers Wizard (Indian Edition)")
+st.title("🍳 AIFridgeChef")
 st.markdown(
-    "Select the Indian vegetables you have available. Staples like **onions, garlic, rice, wheat flour, dal, chana, and rajma** are already assumed to be in your kitchen!"
+    "Select the Indian vegetables you have available. Staples like **onions,"
+    " garlic, rice, wheat flour, dal, chana, and rajma** are already assumed to"
+    " be in your kitchen!"
 )
 
 # -----------------------------------------------------------
@@ -75,7 +75,14 @@ RECIPES = [
     },
     {
         "title": "Aloo Chana Masala",
-        "ingredients": ["chick peas", "potatoes", "onion", "tomatoes", "garlic", "spices"],
+        "ingredients": [
+            "chick peas",
+            "potatoes",
+            "onion",
+            "tomatoes",
+            "garlic",
+            "spices",
+        ],
         "time": "30 mins",
         "difficulty": "Medium",
         "instructions": "1. Boil chick peas (chana) and potatoes.\n2. Prepare a masala base with garlic, onions, and tomatoes.\n3. Toss in boiled chana and potatoes, add water and spices, and simmer.",
@@ -167,13 +174,14 @@ st.markdown("---")
 # -----------------------------------------------------------
 # GENERATE RESULTS
 # -----------------------------------------------------------
-if st.button("✨ Generate Indian Recipes", type="primary", use_container_width=True):
+if st.button("✨ Generate Recipes", type="primary", use_container_width=True):
   with st.spinner("Cooking up desi ideas..."):
     results = find_matching_recipes(selected_list)
 
   if not results:
     st.info(
-        "No recipes matched your exact selection. Try checking a few more vegetables above!"
+        "No recipes matched your exact selection. Try checking a few more"
+        " vegetables above!"
     )
   else:
     st.success(f"Found {len(results)} delicious meal idea(s) for you!")
