@@ -10,7 +10,7 @@ st.set_page_config(
 
 st.title("🍳 AI Recipe & Fridge Leftovers Wizard (Indian Edition)")
 st.markdown(
-    "Got Indian vegetables and staples lying around? Select or type them below to discover instant desi meal ideas!"
+    "Select the Indian vegetables you have available. Staples like **onions, garlic, rice, wheat flour, dal, chana, and rajma** are already assumed to be in your kitchen!"
 )
 
 # -----------------------------------------------------------
@@ -66,6 +66,20 @@ RECIPES = [
         "difficulty": "Easy",
         "instructions": "1. Blend fresh mint leaves into a coarse paste.\n2. Sauté sliced onions and spices in oil, then add the mint paste.\n3. Toss in cooked rice and mix thoroughly on low heat.",
     },
+    {
+        "title": "Punjabi Rajma Curry",
+        "ingredients": ["rajma", "onion", "tomatoes", "garlic", "spices"],
+        "time": "35 mins",
+        "difficulty": "Medium",
+        "instructions": "1. Boil pre-soaked rajma until completely soft.\n2. Sauté garlic, onions, and tomatoes with rich Indian spices to make a thick gravy.\n3. Add boiled rajma, simmer together for 10 minutes, and serve hot with rice.",
+    },
+    {
+        "title": "Aloo Chana Masala",
+        "ingredients": ["chick peas", "potatoes", "onion", "tomatoes", "garlic", "spices"],
+        "time": "30 mins",
+        "difficulty": "Medium",
+        "instructions": "1. Boil chick peas (chana) and potatoes.\n2. Prepare a masala base with garlic, onions, and tomatoes.\n3. Toss in boiled chana and potatoes, add water and spices, and simmer.",
+    },
 ]
 
 
@@ -91,7 +105,7 @@ def find_matching_recipes(user_ingredients):
 st.subheader("🛒 What's in your Indian kitchen?")
 
 # Indian vegetable quick-select checkboxes
-st.markdown("Select Indian vegetables and items you have:")
+st.markdown("Select available Indian vegetables & items:")
 col1, col2, col3, col4 = st.columns(4)
 with col1:
   has_capsicum = st.checkbox("Capsicum 🫑")
@@ -106,26 +120,27 @@ with col4:
   has_bitter_gourd = st.checkbox("Bitter Gourd (Karela) 🍈")
   has_potatoes = st.checkbox("Potatoes 🥔")
 
-# Common staples quick-select
-st.markdown("Common Staples & Basics:")
-c_s1, c_s2, c_s3, c_s4 = st.columns(4)
-with c_s1:
-  has_onion = st.checkbox("Onion 🧅")
-with c_s2:
-  has_tomatoes = st.checkbox("Tomatoes 🍅")
-with c_s3:
-  has_garlic = st.checkbox("Garlic 🧄")
-with c_s4:
-  has_rice = st.checkbox("Rice 🍚")
-
 # Custom text input for extra flexibility
 custom_ingredients = st.text_input(
-    "Or type any extra ingredients separated by commas:",
-    placeholder="e.g., dal, wheat flour, spices, oil",
+    "Type any other extra ingredients (e.g., tomatoes, oil, spices):",
+    placeholder="e.g., tomatoes, oil, spices",
 )
 
-# Compile selected ingredients list
-selected_list = []
+# Automatically add all permanent staples to the active user inventory list
+selected_list = [
+    "onion",
+    "garlic",
+    "rice",
+    "wheat flour",
+    "dal",
+    "chick peas",
+    "rajma",
+    "tomatoes",
+    "oil",
+    "spices",
+]
+
+# Append selected checkboxes
 if has_capsicum:
   selected_list.append("capsicum")
 if has_palak:
@@ -142,14 +157,6 @@ if has_bitter_gourd:
   selected_list.append("bitter gourd")
 if has_potatoes:
   selected_list.append("potatoes")
-if has_onion:
-  selected_list.append("onion")
-if has_tomatoes:
-  selected_list.append("tomatoes")
-if has_garlic:
-  selected_list.append("garlic")
-if has_rice:
-  selected_list.append("rice")
 
 if custom_ingredients:
   extra = [item.strip() for item in custom_ingredients.split(",")]
@@ -161,33 +168,26 @@ st.markdown("---")
 # GENERATE RESULTS
 # -----------------------------------------------------------
 if st.button("✨ Generate Indian Recipes", type="primary", use_container_width=True):
-  if not selected_list:
-    st.warning(
-        "Please select or type at least one ingredient to get recipe"
-        " suggestions!"
+  with st.spinner("Cooking up desi ideas..."):
+    results = find_matching_recipes(selected_list)
+
+  if not results:
+    st.info(
+        "No recipes matched your exact selection. Try checking a few more vegetables above!"
     )
   else:
-    with st.spinner("Cooking up desi ideas..."):
-      results = find_matching_recipes(selected_list)
+    st.success(f"Found {len(results)} delicious meal idea(s) for you!")
+    for recipe in results:
+      with st.container(border=True):
+        st.subheader(recipe["title"])
+        c1, c2 = st.columns(2)
+        with c1:
+          st.markdown(f"⏱️ **Prep Time:** {recipe['time']}")
+        with c2:
+          st.markdown(f"📊 **Difficulty:** {recipe['difficulty']}")
 
-    if not results:
-      st.info(
-          "No exact recipe matches found for those specific items yet. Try"
-          " adding staples like onions, tomatoes, or spices!"
-      )
-    else:
-      st.success(f"Found {len(results)} delicious meal idea(s) for you!")
-      for recipe in results:
-        with st.container(border=True):
-          st.subheader(recipe["title"])
-          c1, c2 = st.columns(2)
-          with c1:
-            st.markdown(f"⏱️ **Prep Time:** {recipe['time']}")
-          with c2:
-            st.markdown(f"📊 **Difficulty:** {recipe['difficulty']}")
-
-          st.markdown(
-              f"🥗 **Required Ingredients:** {', '.join(recipe['ingredients'])}"
-          )
-          st.markdown("**Instructions:**")
-          st.text(recipe["instructions"])
+        st.markdown(
+            f"🥗 **Required Ingredients:** {', '.join(recipe['ingredients'])}"
+        )
+        st.markdown("**Instructions:**")
+        st.text(recipe["instructions"])
