@@ -25,6 +25,13 @@ RECIPES = [
         "instructions": "1. Chop potatoes and capsicum into cubes.\n2. Sauté onions and tomatoes with Indian spices in oil.\n3. Add potatoes and capsicum, cover and cook until tender.",
     },
     {
+        "title": "Capsicum Besan Sabzi (Stir Fry)",
+        "ingredients": ["capsicum", "onion", "spices", "oil"],
+        "time": "15 mins",
+        "difficulty": "Easy",
+        "instructions": "1. Slice capsicum and onions lengthwise.\n2. Sauté onions in oil, add sliced capsicum and spices, and cook for 5 minutes.\n3. Sprinkle roasted gram flour (besan) on top for an amazing crunch and aroma!",
+    },
+    {
         "title": "Palak Dal (Spinach Lentils)",
         "ingredients": ["palak", "dal", "onion", "tomatoes", "spices", "garlic"],
         "time": "25 mins",
@@ -73,31 +80,22 @@ RECIPES = [
         "difficulty": "Medium",
         "instructions": "1. Boil pre-soaked rajma until completely soft.\n2. Sauté garlic, onions, and tomatoes with rich Indian spices to make a thick gravy.\n3. Add boiled rajma, simmer together for 10 minutes, and serve hot with rice.",
     },
-    {
-        "title": "Aloo Chana Masala",
-        "ingredients": [
-            "chick peas",
-            "potatoes",
-            "onion",
-            "tomatoes",
-            "garlic",
-            "spices",
-        ],
-        "time": "30 mins",
-        "difficulty": "Medium",
-        "instructions": "1. Boil chick peas (chana) and potatoes.\n2. Prepare a masala base with garlic, onions, and tomatoes.\n3. Toss in boiled chana and potatoes, add water and spices, and simmer.",
-    },
 ]
 
 
-def find_matching_recipes(user_ingredients):
-  """Finds recipes where the recipe ingredients are a subset of the user's available ingredients."""
+def find_matching_recipes(user_ingredients, selected_veg_set):
+  """Finds recipes where the recipe ingredients are a subset of the user's available ingredients,
+
+  AND the recipe actually uses at least one of the explicitly checked vegetables.
+  """
   user_set = set([i.strip().lower() for i in user_ingredients])
   matched = []
 
   for recipe in RECIPES:
     recipe_set = set(recipe["ingredients"])
-    if recipe_set.issubset(user_set):
+    # 1. User must have all ingredients for the recipe
+    # 2. Recipe MUST contain at least one of the explicitly selected fresh vegetables
+    if recipe_set.issubset(user_set) and (recipe_set & selected_veg_set):
       matched.append((len(recipe_set), recipe))
 
   matched.sort(key=lambda x: x[0], reverse=True)
@@ -110,7 +108,6 @@ def find_matching_recipes(user_ingredients):
 st.subheader("🛒 What's in your Indian kitchen?")
 
 # Indian vegetable quick-select checkboxes
-st.markdown("Select available Indian vegetables & items:")
 col1, col2, col3, col4 = st.columns(4)
 with col1:
   has_capsicum = st.checkbox("Capsicum 🫑")
@@ -145,38 +142,49 @@ selected_list = [
     "spices",
 ]
 
-# Track if any optional vegetable checkbox was actually clicked
+# Track explicitly selected fresh vegetables
+selected_veg_set = set()
 any_veg_selected = False
 
 if has_capsicum:
   selected_list.append("capsicum")
+  selected_veg_set.add("capsicum")
   any_veg_selected = True
 if has_palak:
   selected_list.append("palak")
+  selected_veg_set.add("palak")
   any_veg_selected = True
 if has_brinjal:
   selected_list.append("brinjal")
+  selected_veg_set.add("brinjal")
   any_veg_selected = True
 if has_methi:
   selected_list.append("methi")
+  selected_veg_set.add("methi")
   any_veg_selected = True
 if has_bottle_gourd:
   selected_list.append("bottle gourd")
+  selected_veg_set.add("bottle gourd")
   any_veg_selected = True
 if has_mint:
   selected_list.append("mint")
+  selected_veg_set.add("mint")
   any_veg_selected = True
 if has_bitter_gourd:
   selected_list.append("bitter gourd")
+  selected_veg_set.add("bitter gourd")
   any_veg_selected = True
 if has_potatoes:
   selected_list.append("potatoes")
+  selected_veg_set.add("potatoes")
   any_veg_selected = True
 
 if custom_ingredients:
   extra = [item.strip() for item in custom_ingredients.split(",")]
   if extra and extra[0] != "":
     selected_list.extend(extra)
+    for item in extra:
+      selected_veg_set.add(item.lower())
     any_veg_selected = True
 
 st.markdown("---")
@@ -185,7 +193,6 @@ st.markdown("---")
 # GENERATE RESULTS
 # -----------------------------------------------------------
 if st.button("✨ Generate Recipes", type="primary", use_container_width=True):
-  # Check if nothing extra was selected besides the hidden defaults
   if not any_veg_selected:
     st.error(
         "🛑 **FAST TILL YOU BUY STUFF!** 🧘‍♂️ Your fridge is completely empty"
@@ -194,12 +201,12 @@ if st.button("✨ Generate Recipes", type="primary", use_container_width=True):
     )
   else:
     with st.spinner("Cooking up desi ideas..."):
-      results = find_matching_recipes(selected_list)
+      results = find_matching_recipes(selected_list, selected_veg_set)
 
     if not results:
       st.warning(
-          "⚠️ **STRICT FASTING CONTINUES!** No matching recipes found for that"
-          " specific combo. Try checking a few more veggies!"
+          "⚠️ **STRICT FASTING CONTINUES!** No matching recipes found that"
+          " utilize those specific fresh veggies. Try checking a few more!"
       )
     else:
       st.success(f"Found {len(results)} delicious meal idea(s) for you!")
